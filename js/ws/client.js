@@ -1,7 +1,7 @@
 /**
  * Client for interacting with the Gemini 2.0 Flash Multimodal Live API via WebSockets.
  * This class handles the connection, sending and receiving messages, and processing responses.
- * 
+ *
  * @extends EventEmitter
  */
 import { EventEmitter } from 'https://cdn.skypack.dev/eventemitter3';
@@ -17,7 +17,7 @@ export class GeminiWebsocketClient extends EventEmitter {
     constructor(name, url, config) {
         super();
         this.name = name || 'WebSocketClient';
-        this.url = url || `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${apiKey}`;
+        this.url = url || `wss://geminiproxy.amazingxia.top/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${apiKey}`;
         this.ws = null;
         this.config = config;
         this.isConnecting = false;
@@ -93,10 +93,10 @@ export class GeminiWebsocketClient extends EventEmitter {
      */
     async receive(blob) {
         const response = await blobToJSON(blob);
-        
+
         // Handle tool call responses
         if (response.toolCall) {
-            console.debug(`${this.name} received tool call`, response);       
+            console.debug(`${this.name} received tool call`, response);
             this.emit('tool_call', response.toolCall);
             return;
         }
@@ -127,10 +127,10 @@ export class GeminiWebsocketClient extends EventEmitter {
 
                 // Filter out audio parts from the model's content parts
                 const audioParts = parts.filter((p) => p.inlineData && p.inlineData.mimeType.startsWith('audio/pcm'));
-                
+
                 // Extract base64 encoded audio data from the audio parts
                 const base64s = audioParts.map((p) => p.inlineData?.data);
-                
+
                 // Create an array of non-audio parts by excluding the audio parts
                 const otherParts = parts.filter((p) => !audioParts.includes(p));
 
@@ -155,7 +155,7 @@ export class GeminiWebsocketClient extends EventEmitter {
 
     /**
      * Sends encoded audio chunk to the Gemini API.
-     * 
+     *
      * @param {string} base64audio - The base64 encoded audio string.
      */
     async sendAudio(base64audio) {
@@ -166,7 +166,7 @@ export class GeminiWebsocketClient extends EventEmitter {
 
     /**
      * Sends encoded image to the Gemini API.
-     * 
+     *
      * @param {string} base64image - The base64 encoded image string.
      */
     async sendImage(base64image) {
@@ -177,19 +177,19 @@ export class GeminiWebsocketClient extends EventEmitter {
 
     /**
      * Sends a text message to the Gemini API.
-     * 
+     *
      * @param {string} text - The text to send to Gemini.
      * @param {boolean} endOfTurn - If false model will wait for more input without sending a response.
      */
     async sendText(text, endOfTurn = true) {
-        const formattedText = { 
-            clientContent: { 
+        const formattedText = {
+            clientContent: {
                 turns: [{
-                    role: 'user', 
+                    role: 'user',
                     parts: { text: text } // TODO: Should it be in the list or not?
-                }], 
-                turnComplete: endOfTurn 
-            } 
+                }],
+                turnComplete: endOfTurn
+            }
         };
         await this.sendJSON(formattedText);
         console.debug(`Text sent to ${this.name}:`, text);
@@ -229,11 +229,11 @@ export class GeminiWebsocketClient extends EventEmitter {
 
     /**
      * Sends a JSON object to the Gemini API.
-     * 
+     *
      * @param {Object} json - The JSON object to send.
      */
 
-    async sendJSON(json) {        
+    async sendJSON(json) {
         try {
             this.ws.send(JSON.stringify(json));
             // console.debug(`JSON Object was sent to ${this.name}:`, json);
